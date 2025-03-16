@@ -12,7 +12,7 @@ AWS CloudShell is a pre-authenticated, browser-based command-line interface inte
 
 - **Pre-Configured**: Comes with the AWS CLI (version 2), common tools (e.g., `bash`, `python`, `jq`), and SDKs like Boto3 pre-installed.
 - **Authentication**: Automatically uses your AWS Management Console credentials (IAM user or role), supporting MFA if enabled.
-- **Persistent Storage**: Provides 1 GB of free storage per region for scripts and files, persisted across sessions.
+- **Persistent Storage**: `Provides 1 GB` of free storage per region for scripts and files, persisted across sessions.
 - **Accessibility**: Available in supported regions directly from the browser, no local setup required.
 
 #### **Use Cases**
