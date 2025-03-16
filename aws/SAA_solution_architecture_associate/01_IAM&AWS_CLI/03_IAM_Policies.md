@@ -105,3 +105,113 @@ IAM policies are JSON documents that specify what actions are allowed or denied,
   }
   ```
   This restricts access to a specific IP range.
+
+---
+
+Dưới đây là phiên bản tiếng Việt của hướng dẫn về **Chính Sách IAM** trong AWS, bao gồm giải thích và phần thực hành chi tiết.
+
+---
+
+### **Tìm Hiểu về Chính Sách IAM**
+
+Chính sách IAM là các tài liệu JSON xác định quyền—cho phép hoặc từ chối các hành động nào, trên tài nguyên nào của AWS, và trong điều kiện nào. Chúng được gắn vào các danh tính IAM (người dùng, nhóm hoặc vai trò) để cấp hoặc hạn chế quyền truy cập vào các dịch vụ AWS.
+
+#### **Các Thành Phần Chính của Chính Sách IAM**
+
+- **Version**: Xác định phiên bản ngôn ngữ chính sách (thường là `"2012-10-17"`).
+- **Statement**: Phần cốt lõi của chính sách, chứa một hoặc nhiều câu lệnh quyền. Mỗi câu lệnh bao gồm:
+  - **Effect**: `"Allow"` (cho phép) hoặc `"Deny"` (từ chối).
+  - **Action**: Các hành động của dịch vụ AWS (ví dụ: `"s3:ListBucket"`, `"ec2:StartInstances"`).
+  - **Resource**: Tài nguyên AWS mà hành động áp dụng, được chỉ định bởi ARN (ví dụ: `"arn:aws:s3:::example-bucket"`).
+  - **Condition** (tùy chọn): Các quy tắc bổ sung (ví dụ: chỉ cho phép từ một địa chỉ IP cụ thể).
+
+#### **Các Loại Chính Sách**
+
+1. **Chính Sách Quản Lý**:
+   - **Do AWS Quản Lý**: Được AWS định nghĩa sẵn (ví dụ: `AmazonS3ReadOnlyAccess`).
+   - **Do Khách Hàng Quản Lý**: Do bạn tạo và tùy chỉnh.
+2. **Chính Sách Nội Tuyến**: Được nhúng trực tiếp vào người dùng, nhóm hoặc vai trò (ít tái sử dụng, khó quản lý hơn).
+
+#### **Ví Dụ Chính Sách**
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": ["s3:ListBucket", "s3:GetObject"],
+      "Resource": [
+        "arn:aws:s3:::example-bucket",
+        "arn:aws:s3:::example-bucket/*"
+      ]
+    }
+  ]
+}
+```
+
+- Chính sách này cho phép liệt kê bucket (`ListBucket`) và lấy đối tượng (`GetObject`) từ `example-bucket`.
+
+#### **Thực Hành Tốt Nhất**
+
+- **Quyền Tối Thiểu**: Chỉ cấp những quyền cần thiết.
+- **Sử Dụng Chính Sách Quản Lý**: Để dễ tái sử dụng và quản lý.
+- **Kiểm Tra Chính Sách**: Sử dụng IAM Policy Simulator (trong AWS Console) để xác minh hành vi.
+
+---
+
+### **Thực Hành: Tạo và Gắn Chính Sách IAM**
+
+#### **Bước 1: Tạo Chính Sách IAM Tùy Chỉnh**
+
+1. **Đăng Nhập vào AWS Management Console**:
+   - Truy cập `console.aws.amazon.com` và đăng nhập.
+2. **Điều Hướng đến IAM**:
+   - Tìm kiếm "IAM" và chọn nó.
+3. **Tạo Chính Sách**:
+   - Trong thanh bên trái, nhấp vào **Policies** > **Create policy**.
+4. **Sử Dụng Trình Soạn Thảo Hình Ảnh hoặc JSON**:
+   - **Trình Soạn Thảo Hình Ảnh**:
+     - Dịch vụ: Chọn `S3`.
+     - Hành động: Chọn `ListBucket` và `GetObject`.
+     - Tài nguyên: Chỉ định `example-bucket` (bucket) và `Tất cả đối tượng` (object ARN).
+     - Nhấp **Next: Tags** (tùy chọn), rồi **Next: Review**.
+   - **JSON** (tùy chọn khác):
+     - Dán chính sách ví dụ ở trên, thay `example-bucket` bằng tên bucket của bạn.
+5. **Xem Xét và Lưu**:
+   - Đặt tên chính sách (ví dụ: `S3ReadOnlyCustom`).
+   - Nhấp **Create policy**.
+
+#### **Bước 2: Gắn Chính Sách vào Nhóm**
+
+1. **Đi đến Groups**:
+   - Trong IAM, nhấp vào **Groups** và chọn một nhóm hiện có (ví dụ: `Developers`) hoặc tạo nhóm mới.
+2. **Gắn Chính Sách**:
+   - Mở nhóm, đi đến tab **Permissions**, và nhấp **Attach policies**.
+   - Tìm kiếm `S3ReadOnlyCustom`, chọn nó, và nhấp **Attach policy**.
+   - Tất cả người dùng trong nhóm giờ đây kế thừa các quyền này.
+
+#### **Bước 3: Kiểm Tra Chính Sách**
+
+1. **Đăng Nhập với Người Dùng IAM**:
+   - Sử dụng thông tin đăng nhập của một người dùng trong nhóm `Developers` (ví dụ: `Alice`, đã tạo trước đó).
+   - Truy cập URL đăng nhập AWS của bạn (ví dụ: `https://<account-id>.signin.aws.amazon.com/console`).
+2. **Xác Minh Quyền Truy Cập**:
+   - Điều hướng đến S3, thử liệt kê `example-bucket` và tải xuống một đối tượng. Điều này sẽ hoạt động.
+   - Thử tải lên một đối tượng (ví dụ: `PutObject`). Điều này sẽ thất bại vì chính sách không cho phép.
+
+---
+
+### **Ghi Chú Thêm**
+
+- **Ký Tự Đại Diện**: Sử dụng `*` trong `Action` (ví dụ: `"s3:*"`) hoặc `Resource` (ví dụ: `"arn:aws:s3:::*"`) một cách cẩn thận—nó cấp quyền truy cập rộng.
+- **Deny Vượt Qua Allow**: Nếu một người dùng có nhiều chính sách, `"Deny"` rõ ràng trong bất kỳ chính sách nào sẽ được ưu tiên.
+- **Điều Kiện**: Thêm điều kiện để kiểm soát chi tiết hơn, ví dụ:
+  ```json
+  "Condition": {
+    "IpAddress": {
+      "aws:SourceIp": "203.0.113.0/24"
+    }
+  }
+  ```
+  Điều này giới hạn truy cập từ một dải IP cụ thể.
