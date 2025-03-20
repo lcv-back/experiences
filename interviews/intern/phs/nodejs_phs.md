@@ -12,7 +12,7 @@
 - dùng typescript chưa?
 - tại sao cần token khi authen? token nằm ở trên ở request?
 - có thể gửi request từ tcp mà ko cần thông qua http k? mô tả?
-- hiểu như thế nào về pub/sub?
+- hiểu như thế nào về pub/sub? so sanh redis pub/sub voi kafka hoac rabbitMQ?
 - nếu tiếp cận vấn đề bằng oop thì như thế nào? ưu, nhược?
 - redis dùng để làm gì?.. redis hỗ trở kiểu dữ liệu nào? redis khác gì với sql?
 - dùng docker đến mức nào? docker compose, dockerfile
