@@ -83,305 +83,54 @@ N = 3
 
 ### Cách giải quyết
 
-Vì `N` nhỏ (tối đa 20), ta có thể dùng cách tiếp cận có hệ thống để giải quyết hiệu quả. Ý tưởng chính như sau:
-
-1. **Nhận xét quan trọng**: Để tồn tại một hình vuông mà tất cả các điểm nằm trên chu vi:
-
-   - Các điểm phải nằm trên bốn đường thẳng định nghĩa hình vuông: `x = x_min`, `x = x_max`, `y = y_min`, `y = y_max`.
-   - Độ dài cạnh của hình vuông phải thỏa mãn `s = x_max - x_min = y_max - y_min`.
-   - Mỗi điểm `(X[K], Y[K])` phải có `x` bằng `x_min` hoặc `x_max`, **hoặc** `y` bằng `y_min` hoặc `y_max`, và tọa độ phải phù hợp với hình vuông.
-
-2. **Các bước**:
-
-   - Tính giá trị nhỏ nhất và lớn nhất của `X` (`x_min`, `x_max`) và `Y` (`y_min`, `y_max`).
-   - Kiểm tra xem `x_max - x_min` có bằng `y_max - y_min` không (hình vuông phải có các cạnh bằng nhau).
-   - Xác minh rằng mỗi điểm `(X[K], Y[K])` nằm trên một trong bốn cạnh của hình vuông được định nghĩa bởi `(x_min, y_min)` và độ dài cạnh `s`.
-
-3. **Thuật toán** (dưới dạng mã giả):
-
-```pseudocode
-hàm kiemTraHinhVuong(X[], Y[], N):
-    nếu N == 0:
-        trả về true  // Tập rỗng thì luôn đúng
-
-    x_min = giá_trị_nhỏ_nhất(X)
-    x_max = giá_trị_lớn_nhất(X)
-    y_min = giá_trị_nhỏ_nhất(Y)
-    y_max = giá_trị_lớn_nhất(Y)
-
-    // Kiểm tra xem có phải hình vuông không (các cạnh phải bằng nhau)
-    nếu x_max - x_min != y_max - y_min:
-        trả về false
-
-    s = x_max - x_min  // Độ dài cạnh
-
-    // Kiểm tra từng điểm
-    với k từ 0 đến N-1:
-        x = X[k]
-        y = Y[k]
-        // Điểm phải nằm trên một trong bốn cạnh
-        nếu không (
-            (x == x_min và y_min <= y <= y_max) hoặc  // Cạnh trái
-            (x == x_max và y_min <= y <= y_max) hoặc  // Cạnh phải
-            (y == y_min và x_min <= x <= x_max) hoặc  // Cạnh dưới
-            (y == y_max và x_min <= x <= x_max)      // Cạnh trên
-        ):
-            trả về false
-
-    trả về true
 ```
+bool solution(vector<int>& X, vector<int>& Y) {
+    int N = X.size();
 
----
+    int minX = *min_element(X.begin(), X.end());
+    int maxX = *max_element(X.begin(), X.end());
+    int minY = *min_element(Y.begin(), Y.end());
+    int maxY = *max_element(Y.begin(), Y.end());
 
-### Độ phức tạp thời gian
+    int s1 = maxX - minX;
+    int s2 = maxY - minY;
+    int s = max(s1, s2);
 
-- Tìm `x_min`, `x_max`, `y_min`, `y_max`: O(N).
-- Kiểm tra từng điểm: O(N).
-- Tổng cộng: **O(N)**, rất hiệu quả vì `N ≤ 20`.
+    if (s == 0) return true;
 
-### Lưu ý cuối cùng
-
-- Đề bài yêu cầu tất cả các điểm phải nằm trên chu vi, không được nằm bên trong hình vuông.
-- Nếu bạn cần mã nguồn bằng một ngôn ngữ lập trình cụ thể (như C++, Python), hãy cho tôi biết nhé!
-
-```cpp
-#include <iostream>
-#include <vector>
-#include <algorithm> // Để dùng min và max
-
-using namespace std;
-
-// Hàm kiểm tra xem tất cả các điểm có nằm trên chu vi của một hình vuông hay không
-bool checkSquare(vector<int>& X, vector<int>& Y, int N) {
-    // Trường hợp đặc biệt: nếu không có điểm, trả về true
-    if (N == 0) {
-        return true;
+    set<double> centerX_candidates, centerY_candidates;
+    for (int i = 0; i < N; i++) {
+        centerX_candidates.insert(X[i] + s / 2.0);
+        centerX_candidates.insert(X[i] - s / 2.0);
+        centerY_candidates.insert(Y[i] + s / 2.0);
+        centerY_candidates.insert(Y[i] - s / 2.0);
     }
 
-    // Tìm giá trị nhỏ nhất và lớn nhất của X và Y
-    int x_min = *min_element(X.begin(), X.begin() + N);
-    int x_max = *max_element(X.begin(), X.begin() + N);
-    int y_min = *min_element(Y.begin(), Y.begin() + N);
-    int y_max = *max_element(Y.begin(), Y.begin() + N);
+    for (double centerX : centerX_candidates) {
+        for (double centerY : centerY_candidates) {
+            double left = centerX - s / 2.0;
+            double right = centerX + s / 2.0;
+            double bottom = centerY - s / 2.0;
+            double top = centerY + s / 2.0;
 
-    // Kiểm tra xem có tạo thành hình vuông không (các cạnh phải bằng nhau)
-    if (x_max - x_min != y_max - y_min) {
-        return false;
-    }
+            bool allOnPerimeter = true;
+            for (int i = 0; i < N; i++) {
+                bool onPerimeter = false;
+                if (abs(X[i] - left) < 1e-6 && Y[i] >= bottom && Y[i] <= top) onPerimeter = true;
+                else if (abs(X[i] - right) < 1e-6 && Y[i] >= bottom && Y[i] <= top) onPerimeter = true;
+                else if (abs(Y[i] - bottom) < 1e-6 && X[i] >= left && X[i] <= right) onPerimeter = true;
+                else if (abs(Y[i] - top) < 1e-6 && X[i] >= left && X[i] <= right) onPerimeter = true;
 
-    // Độ dài cạnh của hình vuông
-    int s = x_max - x_min;
-
-    // Kiểm tra từng điểm
-    for (int k = 0; k < N; k++) {
-        int x = X[k];
-        int y = Y[k];
-        // Điểm phải nằm trên một trong bốn cạnh của hình vuông
-        bool onPerimeter = (x == x_min && y_min <= y && y <= y_max) || // Cạnh trái
-                           (x == x_max && y_min <= y && y <= y_max) || // Cạnh phải
-                           (y == y_min && x_min <= x && x <= x_max) || // Cạnh dưới
-                           (y == y_max && x_min <= x && x <= x_max);   // Cạnh trên
-        if (!onPerimeter) {
-            return false;
+                if (!onPerimeter) {
+                    allOnPerimeter = false;
+                    break;
+                }
+            }
+            if (allOnPerimeter) return true;
         }
     }
 
-    return true;
+    return false;
 }
-
-// Hàm main để kiểm tra
-int main() {
-    // Ví dụ 1
-    vector<int> X1 = {0, 0, 1, 1};
-    vector<int> Y1 = {0, 1, 0, 1};
-    int N1 = 4;
-    cout << "Test 1: " << (checkSquare(X1, Y1, N1) ? "true" : "false") << endl;
-
-    // Ví dụ 2
-    vector<int> X2 = {0, 0, 2};
-    vector<int> Y2 = {0, 2, 1};
-    int N2 = 3;
-    cout << "Test 2: " << (checkSquare(X2, Y2, N2) ? "true" : "false") << endl;
-
-    return 0;
-}
+// accept
 ```
-
-# Optimize
-
-Với gợi ý mới: "luôn mở rộng hình vuông để đủ chiều dài chứa hết điểm", tôi hiểu rằng mục tiêu không chỉ là kiểm tra xem các điểm có nằm trên chu vi của một hình vuông hiện có hay không, mà còn phải tìm một hình vuông tối thiểu (với các cạnh song song trục Ox/Oy) sao cho tất cả các điểm nằm trên chu vi của nó, bằng cách mở rộng kích thước hình vuông nếu cần. Dưới đây là cách tối ưu thuật toán dựa trên yêu cầu này.
-
----
-
-### Giải thích ý tưởng tối ưu
-
-1. **Mở rộng hình vuông**:
-
-   - Thay vì chỉ kiểm tra xem các điểm có tạo thành một hình vuông sẵn có không, ta sẽ tìm một hình vuông nhỏ nhất có thể "bao quanh" tất cả các điểm và kiểm tra xem mọi điểm có nằm trên chu vi của hình vuông đó không.
-   - Hình vuông nhỏ nhất chứa tất cả các điểm sẽ có:
-     - `x_min` và `x_max` là giá trị nhỏ nhất và lớn nhất của `X`.
-     - `y_min` và `y_max` là giá trị nhỏ nhất và lớn nhất của `Y`.
-     - Độ dài cạnh `s` của hình vuông phải là `max(x_max - x_min, y_max - y_min)` để đảm bảo chứa hết các điểm.
-
-2. **Kiểm tra chu vi**:
-
-   - Sau khi xác định hình vuông tối thiểu với cạnh `s`, kiểm tra xem tất cả các điểm `(X[K], Y[K])` có nằm trên bốn cạnh của hình vuông này không.
-
-3. **Tối ưu**:
-   - Vì `N` nhỏ (tối đa 20) và phạm vi tọa độ nhỏ (`-10` đến `10`), ta không cần thử nhiều kích thước hình vuông. Chỉ cần tính toán hình vuông nhỏ nhất dựa trên khoảng cách lớn nhất giữa các tọa độ, rồi kiểm tra.
-
----
-
-### Thuật toán tối ưu (pseudocode)
-
-```pseudocode
-hàm kiemTraHinhVuong(X[], Y[], N):
-    nếu N == 0:
-        trả về true
-
-    // Tìm min và max của X, Y
-    x_min = giá_trị_nhỏ_nhất(X)
-    x_max = giá_trị_lớn_nhất(X)
-    y_min = giá_trị_nhỏ_nhất(Y)
-    y_max = giá_trị_lớn_nhất(Y)
-
-    // Tính độ dài cạnh tối thiểu để chứa tất cả các điểm
-    s = tối_đa(x_max - x_min, y_max - y_min)
-
-    // Kiểm tra từng điểm có nằm trên chu vi không
-    với k từ 0 đến N-1:
-        x = X[k]
-        y = Y[k]
-        nếu không (
-            (x == x_min và y_min <= y <= y_min + s) hoặc  // Cạnh trái
-            (x == x_min + s và y_min <= y <= y_min + s) hoặc  // Cạnh phải
-            (y == y_min và x_min <= x <= x_min + s) hoặc  // Cạnh dưới
-            (y == y_min + s và x_min <= x <= x_min + s)   // Cạnh trên
-        ):
-            trả về false
-
-    trả về true
-```
-
----
-
-### Mã nguồn C++ tối ưu
-
-```cpp
-#include <bits/stdc++.h>
-
-using namespace std;
-
-bool isSquarePerimeter(const int* X, const int* Y, int N) {
-    if (N < 0) return false;
-    if (N == 0 || N == 1) return true;
-
-    int x_min = X[0], x_max = X[0], y_min = Y[0], y_max = Y[0];
-
-    for (int i = 1; i < N; i++) {
-        if (X[i] < x_min) x_min = X[i];
-        if (X[i] > x_max) x_max = X[i];
-        if (Y[i] < y_min) y_min = Y[i];
-        if (Y[i] > y_max) y_max = Y[i];
-    }
-
-    if(x_max - x_min == 0) return N > 0;
-
-    // least strength allocate all the points
-    int s = max(x_max - x_min, y_max - y_min);
-
-    // point belong to perimester of square
-    for (int k = 0; k < N; k++) {
-        int x = X[k];
-        int y = Y[k];
-        bool onPerimeter = (x == x_min && y_min <= y && y <= y_min + s) ||  // left
-                           (x == x_min + s && y_min <= y && y <= y_min + s) ||  // right
-                           (y == y_min && x_min <= x && x <= x_min + s) ||  // bot
-                           (y == y_min + s && x_min <= x && x <= x_min + s);  // top
-        if (!onPerimeter) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-int main() {
-    int X1[] = {0, 0, 2, 2};
-    int Y1[] = {0, 2, 0, 2};
-    cout <<"Test 1: " <<(isSquarePerimeter(X1,Y1,4)?"true":"false") <<endl;
-
-    int X2[] = {0, 1, 2};
-    int Y2[] = {0, 1, 2};
-    cout <<"Test 2: " <<(isSquarePerimeter(X2,Y2,3)?"true":"false") <<endl;
-
-    int X3[] = {0, 0, 1};
-    int Y3[] = {0, 1, 1};
-    cout <<"Test 3: " <<(isSquarePerimeter(X3,Y3,3)?"true":"false") <<endl;
-
-    int X4[] = {0};
-    int Y4[] = {0};
-    cout <<"Test 4: " <<(isSquarePerimeter(X4,Y4,1)?"true":"false") <<endl;
-
-    int X5[] = {0, 0};
-    int Y5[] = {0, 0};
-    cout <<"Test 5: " <<(isSquarePerimeter(X5,Y5,2)?"true":"false") <<endl;
-
-    return 0;
-}
-```
-
----
-
-### Giải thích thay đổi trong mã
-
-1. **Tính `s` tối ưu**:
-
-   - Thay vì yêu cầu `x_max - x_min == y_max - y_min`, ta lấy `s = max(x_max - x_min, y_max - y_min)` để đảm bảo hình vuông đủ lớn chứa tất cả các điểm.
-   - Điều này cho phép "mở rộng" hình vuông nếu cần.
-
-2. **Kiểm tra chu vi**:
-
-   - Các cạnh của hình vuông giờ được xác định bởi:
-     - Cạnh trái: `x = x_min`.
-     - Cạnh phải: `x = x_min + s`.
-     - Cạnh dưới: `y = y_min`.
-     - Cạnh trên: `y = y_min + s`.
-   - Mỗi điểm phải nằm trên một trong bốn cạnh này.
-
-3. **Ví dụ minh họa**:
-   - **Ví dụ 1**: `(0,0), (0,1), (1,0), (1,1)`:
-     - `x_min = 0`, `x_max = 1`, `y_min = 0`, `y_max = 1`.
-     - `s = max(1, 1) = 1`.
-     - Tất cả các điểm nằm trên chu vi → `true`.
-   - **Ví dụ 2**: `(0,0), (0,2), (2,1)`:
-     - `x_min = 0`, `x_max = 2`, `y_min = 0`, `y_max = 2`.
-     - `s = max(2, 2) = 2`.
-     - `(0,0)`: cạnh dưới, `(0,2)`: cạnh trên, `(2,1)`: không nằm trên cạnh nào → `false`.
-   - **Ví dụ 3**: `(0,0), (1,1), (2,2)`:
-     - `x_min = 0`, `x_max = 2`, `y_min = 0`, `y_max = 2`.
-     - `s = 2`.
-     - `(1,1)` không nằm trên chu vi → `false`.
-
----
-
-### Kết quả chạy chương trình
-
-```
-Test 1: true
-Test 2: false
-Test 3: false
-```
-
----
-
-### Độ phức tạp
-
-- Tìm min/max: O(N).
-- Kiểm tra từng điểm: O(N).
-- Tổng: **O(N)**, vẫn rất hiệu quả với `N ≤ 20`.
-
-### Lưu ý
-
-- Thuật toán này đảm bảo hình vuông được mở rộng đủ lớn để chứa tất cả các điểm, nhưng vẫn yêu cầu mọi điểm phải nằm trên chu vi, đúng với yêu cầu ban đầu của bài toán.
-- Nếu bạn muốn thay đổi thêm hoặc cần giải thích sâu hơn, hãy cho tôi biết nhé!
